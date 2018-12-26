@@ -15,6 +15,7 @@ class REMatcher(object):
     def group(self,i):
         return self.rematch.group(i)
 
+
 lines = get_data(day=7, year=2018).split("\n")
 g = {}
 children = set()
