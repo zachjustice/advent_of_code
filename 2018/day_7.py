@@ -1,4 +1,4 @@
-from aocd import get_data
+from aocd import get_data, submit1, submit2
 from collections import Counter
 from dateutil.parser import parse
 from datetime import datetime
@@ -14,22 +14,15 @@ class REMatcher(object):
 
     def group(self,i):
         return self.rematch.group(i)
-lines = """Step C must be finished before step A can begin.
-Step C must be finished before step F can begin.
-Step A must be finished before step B can begin.
-Step A must be finished before step D can begin.
-Step B must be finished before step E can begin.
-Step D must be finished before step E can begin.
-Step F must be finished before step E can begin. """.split("\n")
-print(lines)
-#lines = get_data(day=7, year=2018).split("\n")
+
+lines = get_data(day=7, year=2018).split("\n")
 g = {}
 children = set()
 sources = set()
 sinks = set()
 
-#alph_map = list(map(lambda x: str(chr(x)), range(65, 65 + 26)))
-alph_map = ['A','B','C','D','E','F']
+alph_map = list(map(lambda x: str(chr(x)), range(65, 65 + 26)))
+# alph_map = ['A','B','C','D','E','F']
 
 for c in alph_map:
     g[c] = {"children": set(), "parents": set()}
@@ -75,7 +68,7 @@ def problem1(g, sources, sinks):
     return order
 
 def calc_time(x):
-    return ord(str(x).upper()) - ord('A') + 1
+    return ord(str(x).upper()) - ord('A') + 61
 
 def work(g, q, processing_nodes, processed_steps, curr_workers, order):
     for node in processing_nodes:
@@ -83,7 +76,7 @@ def work(g, q, processing_nodes, processed_steps, curr_workers, order):
         if value is not None:
             if value < calc_time(node):
                 processing_nodes[node] += 1
-            if value == calc_time(node):
+            if processing_nodes[node] == calc_time(node):
                 processed_steps.add(node)
                 curr_workers -= 1
                 order += node
@@ -100,13 +93,13 @@ def problem2(g, sources, sinks):
     processing_nodes = {} # keep track of steps as they're worked on {'A': 1}
     tot_workers = 5
     curr_workers = 0
-    seconds = -1
+    seconds = 0
     while len(q) > 0 or curr_workers > 0:
+        g, q, processing_nodes, processed_steps, curr_workers, order = work(g, q, processing_nodes, processed_steps, curr_workers, order) # work on each node in process
+        #print(seconds, processing_nodes, q, processed_steps)
+        q.sort()
         i = 0
         curr_length = len(q)
-        g, q, processing_nodes, processed_steps, curr_workers, order = work(g, q, processing_nodes, processed_steps, curr_workers, order) # work on each node in process
-        print(seconds, processing_nodes)
-        q.sort()
         while i < curr_length and curr_workers < tot_workers: # look at work queue and determine if anything can be done
             curr_step = q[i]
             prereqs = g[curr_step]['parents']
@@ -121,7 +114,7 @@ def problem2(g, sources, sinks):
             else: # don't have all prereqs
                 i += 1 # try the next one
         seconds += 1
-    return seconds - 1, order
+    return seconds - 1
 
-#print(problem1(g, sources, sinks))
-print(problem2(g, sources, sinks))
+submit1(problem1(g, sources, sinks))
+submit2(problem2(g, sources, sinks))
